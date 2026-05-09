@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+    <!-- Fragmento para la barra lateral -->
+    <div th:fragment="sidebar(files)" class="sidebar">
+        <h4>Logs de Tomcat</h4>
+        <div class="file-list">
+            <div th:each="file : ${files}" 
+                 class="file-item" 
+                 th:data-filename="${file}"
+                 onclick="handleFileClick(this)">
+                 <span th:text="${#strings.substringAfter(file, 'logs')} ?: ${file}"></span>
+                 <small style="display: block; font-size: 0.7rem; color: #666;" th:text="${file}"></small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fragmento para el visor de logs -->
+    <div th:fragment="logViewer" class="main-content">
+        <div class="controls">
+            <div class="status-info">
+                <span id="current-file">Selecciona un archivo...</span>
+                <span id="connection-status" class="badge badge-secondary">Desconectado</span>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-danger" onclick="clearLogs()">Limpiar</button>
+                <button id="scroll-btn" class="btn btn-primary" onclick="toggleAutoScroll()">Auto-scroll: ON</button>
+            </div>
+        </div>
+        <div id="log-output"></div>
+    </div>
+
+</body>
+</html>

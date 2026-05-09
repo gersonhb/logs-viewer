@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Log Viewer - Thymeleaf Edition</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body>
+    <div class="app-container" 
+         th:data-api-url="@{/api/logs/content}"
+         th:data-ws-url="@{/ws/logs}"
+         id="app-config">
+        <!-- Usar fragmento de barra lateral -->
+        <div th:replace="fragments :: sidebar(${files})"></div>
+
+        <!-- Usar fragmento de visor de logs -->
+        <div th:replace="fragments :: logViewer"></div>
+    </div>
+
+    <script>
+        let socket = null;
+        let currentFileName = null;
+        let autoScroll = true;
+
+        const config = document.getElementById('app-config').dataset;
+
+        function handleFileClick(element) {
+            const fileName = element.dataset.filename;
+            selectFile(fileName);
+        }
+
+        function selectFile(fileName) {
+            currentFileName = fileName;
+            document.getElementById('current-file').innerText = fileName;
+            
+            document.querySelectorAll('.file-item').forEach(el => {
+                el.classList.remove('active');
+                if (el.innerText.trim() === fileName) el.classList.add('active');
+            });
+
+            const logOutput = document.getElementById('log-output');
+            logOutput.innerText = 'Cargando logs...';
+
+            fetch(config.apiUrl + '?fileName=' + encodeURIComponent(fileName) + '&lines=200')
+                .then(res => res.text())
+                .then(content => {
+                    logOutput.innerText = content;
+                    connectWebSocket(fileName);
+                    scrollToBottom();
+                });
+        }
+
+        function connectWebSocket(fileName) {
+            if (socket) {
+                socket.close();
+            }
+
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const host = window.location.host;
+            const wsUrl = protocol + '//' + host + config.wsUrl;
+            
+            socket = new WebSocket(wsUrl);
+
+            socket.onopen = () => {
+                const status = document.getElementById('connection-status');
+                status.innerText = 'Conectado (Tiempo Real)';
+                status.className = 'badge badge-success';
+                socket.send(fileName);
+            };
+
+            socket.onmessage = (event) => {
+                const logOutput = document.getElementById('log-output');
+                logOutput.innerText += '\n' + event.data;
+                if (autoScroll) scrollToBottom();
+            };
+
+            socket.onclose = () => {
+                const status = document.getElementById('connection-status');
+                status.innerText = 'Desconectado';
+                status.className = 'badge badge-danger';
+            };
+        }
+
+        function scrollToBottom() {
+            const logOutput = document.getElementById('log-output');
+            logOutput.scrollTop = logOutput.scrollHeight;
+        }
+
+        function toggleAutoScroll() {
+            autoScroll = !autoScroll;
+            const btn = document.getElementById('scroll-btn');
+            btn.innerText = 'Auto-scroll: ' + (autoScroll ? 'ON' : 'OFF');
+            btn.className = 'btn ' + (autoScroll ? 'btn-primary' : '');
+        }
+
+        function clearLogs() {
+            document.getElementById('log-output').innerText = '';
+        }
+    </script>
+</body>
+</html>
