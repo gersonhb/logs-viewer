@@ -1,10 +1,13 @@
 package com.logviewer.config;
 
 import org.springframework.beans.factory.annotation.Value;
+import com.logviewer.service.LogService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
+import org.springframework.web.util.HtmlUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,6 +20,9 @@ import java.util.concurrent.Executors;
 @Component
 public class LogWebSocketHandler extends TextWebSocketHandler {
 
+    @Autowired
+    private LogService logService;
+
     private final Map<String, ExecutorService> tailers = new ConcurrentHashMap<>();
 
     @Override
@@ -28,6 +34,11 @@ public class LogWebSocketHandler extends TextWebSocketHandler {
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         String absolutePath = message.getPayload();
         stopTailing(session.getId());
+
+        if (!logService.isPathAllowed(absolutePath)) {
+            session.sendMessage(new TextMessage("Error: Acceso no autorizado a la ruta especificada."));
+            return;
+        }
 
         File logFile = new File(absolutePath);
         if (!logFile.exists()) {
@@ -51,7 +62,7 @@ public class LogWebSocketHandler extends TextWebSocketHandler {
                         reader.seek(lastKnownPosition);
                         String line;
                         while ((line = reader.readLine()) != null) {
-                            session.sendMessage(new TextMessage(line));
+                            session.sendMessage(new TextMessage(HtmlUtils.htmlEscape(line)));
                         }
                         lastKnownPosition = reader.getFilePointer();
                     } else if (length < lastKnownPosition) {

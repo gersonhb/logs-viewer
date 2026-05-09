@@ -60,6 +60,11 @@ public class LogService {
     }
 
     public String readLastLines(String absolutePath, int numLines) throws IOException {
+        if (!isPathAllowed(absolutePath)) {
+            logger.error("Intento de acceso no autorizado a la ruta: {}", absolutePath);
+            return "Error: Acceso denegado a la ruta especificada.";
+        }
+
         Path path = Paths.get(absolutePath);
         if (!Files.exists(path)) {
             return "File not found: " + absolutePath;
@@ -69,5 +74,24 @@ public class LogService {
         int size = lines.size();
         int start = Math.max(0, size - numLines);
         return String.join("\n", lines.subList(start, size));
+    }
+
+    public boolean isPathAllowed(String absolutePath) {
+        if (absolutePath == null || absolutePath.contains("..")) {
+            return false;
+        }
+
+        try {
+            Path targetPath = Paths.get(absolutePath).toAbsolutePath().normalize();
+            for (String dir : logsDirectories) {
+                Path allowedPath = Paths.get(dir).toAbsolutePath().normalize();
+                if (targetPath.startsWith(allowedPath)) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Error validando ruta: {}", absolutePath, e);
+        }
+        return false;
     }
 }

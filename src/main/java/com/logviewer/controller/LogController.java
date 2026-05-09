@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import org.springframework.web.util.HtmlUtils;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -32,6 +34,7 @@ public class LogController {
     @GetMapping("/api/logs/content")
     @ResponseBody
     public String getContent(@RequestParam String fileName, @RequestParam(defaultValue = "100") int lines) throws IOException {
-        return logService.readLastLines(fileName, lines);
+        String content = logService.readLastLines(fileName, lines);
+        return HtmlUtils.htmlEscape(content);
     }
 }
