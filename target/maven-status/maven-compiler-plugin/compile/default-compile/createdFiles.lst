@@ -1,6 +1,0 @@
-com\logviewer\config\WebSocketConfig.class
-com\logviewer\controller\LogController.class
-com\logviewer\service\LogService.class
-com\logviewer\config\LogWebSocketHandler.class
-com\logviewer\config\WebAppInitializer.class
-com\logviewer\config\WebConfig.class
