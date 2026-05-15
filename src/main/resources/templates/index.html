@@ -9,6 +9,7 @@
     <div class="app-container" 
          th:data-api-url="@{/api/logs/content}"
          th:data-ws-url="@{/ws/logs}"
+         th:data-download-url="@{/api/logs/download}"
          id="app-config">
         <!-- Usar fragmento de barra lateral -->
         <div th:replace="fragments :: sidebar(${files})"></div>
@@ -32,6 +33,7 @@
         function selectFile(fileName) {
             currentFileName = fileName;
             document.getElementById('current-file').innerText = fileName;
+            document.getElementById('download-btn').style.display = 'inline-block';
             
             document.querySelectorAll('.file-item').forEach(el => {
                 el.classList.remove('active');
@@ -104,6 +106,16 @@
             wrapBtn.innerText = 'Ajuste de línea: ' + (isWrapped ? 'ON' : 'OFF');
             wrapBtn.className = 'btn ' + (isWrapped ? 'btn-primary' : '');
             if (autoScroll) scrollToBottom();
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+
+        function downloadCurrentFile() {
+            if (!currentFileName) return;
+            window.location.href = config.downloadUrl + '?fileName=' + encodeURIComponent(currentFileName);
         }
     </script>
 </body>

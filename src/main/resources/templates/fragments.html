@@ -23,10 +23,12 @@
     <div th:fragment="logViewer" class="main-content">
         <div class="controls">
             <div class="status-info">
+                <button class="toggle-sidebar-btn" onclick="toggleSidebar()" title="Mostrar/Ocultar Panel Lateral">☰</button>
                 <span id="current-file">Selecciona un archivo...</span>
                 <span id="connection-status" class="badge badge-secondary">Desconectado</span>
             </div>
             <div class="btn-group">
+                <button id="download-btn" class="btn" onclick="downloadCurrentFile()" style="display: none;">Descargar</button>
                 <button id="wrap-btn" class="btn" onclick="toggleWrap()">Ajuste de línea: OFF</button>
                 <button class="btn btn-danger" onclick="clearLogs()">Limpiar</button>
                 <button id="scroll-btn" class="btn btn-primary" onclick="toggleAutoScroll()">Auto-scroll: ON</button>
